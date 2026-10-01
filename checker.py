@@ -1,7 +1,6 @@
 import requests
 import xml.etree.ElementTree as ET
 
-# Apne Blogger blog ka sitemap URL yahan dalein
 SITEMAP_URL = "https://www.gsmhelpful.com/sitemap.xml"
 
 def get_urls_from_sitemap(sitemap_url):
@@ -12,9 +11,7 @@ def get_urls_from_sitemap(sitemap_url):
             print("Failed to fetch sitemap.")
             return []
         
-        # Parse XML sitemap
         root = ET.fromstring(response.content)
-        # Handle XML namespace if present
         namespace = {'ns': 'http://www.sitemaps.org/schemas/sitemap/0.9'}
         urls = [loc.text for loc in root.findall('.//ns:loc', namespace)]
         return urls
@@ -27,16 +24,15 @@ def check_links(urls):
     print(f"Checking {len(urls)} URLs...")
     for url in urls:
         try:
-            # User-agent lagana zaroori hai taaki website block na kare
             headers = {'User-Agent': 'Mozilla/5.0'}
             res = requests.get(url, headers=headers, timeout=10)
             if res.status_code >= 400:
-                broken_links.append((url, res.status_code))
+                broken_links.append(f"{url} (Status: {res.status_code})")
                 print(f"[BROKEN] {url} - Status: {res.status_code}")
             else:
                 print(f"[OK] {url}")
         except Exception as e:
-            broken_links.append((url, str(e)))
+            broken_links.append(f"{url} (Error: {e})")
             print(f"[ERROR] {url} - {e}")
             
     return broken_links
@@ -47,8 +43,15 @@ if __name__ == "__main__":
         broken = check_links(urls)
         if broken:
             print(f"\nFound {len(broken)} broken links!")
-            exit(1) # Agar broken links milte hain toh workflow fail dikhayega (notification ke liye)
+            # Broken links ko file mein save kar rahe hain taaki email mein bhej sakein
+            with open("broken_links.txt", "w") as f:
+                f.write("\n".join(broken))
+            exit(1)
         else:
             print("\nAll links are healthy!")
+            with open("broken_links.txt", "w") as f:
+                f.write("No broken links found. All links are healthy!")
     else:
         print("No URLs found to check.")
+        with open("broken_links.txt", "w") as f:
+            f.write("Could not fetch sitemap or no URLs found.")
