@@ -2,8 +2,8 @@ name: Blogger Broken Link Checker
 
 on:
   schedule:
-    - cron: '0 0 * * 1' # Har Monday subah 12 baje automatic run hoga
-  workflow_dispatch: # Aap ise manually bhi button daba kar chala sakte hain
+    - cron: '0 0 * * 1' # Har Monday subah 12 baje
+  workflow_dispatch: 
 
 jobs:
   run-checker:
@@ -24,3 +24,17 @@ jobs:
 
       - name: Run Link Checker Script
         run: python checker.py
+        continue-on-error: true # Script fail ho tab bhi email bhejne wala step chal sake
+
+      - name: Send Email Notification
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          subject: "Alert: Broken Links Found on your Blogger Blog!"
+          to: ${{ secrets.MAIL_USERNAME }} # Jis email par notification chahiye (aap apna email bhi daal sakte hain)
+          from: GitHub Actions
+          body: "Hello! Your weekly Blogger SEO check is complete. Please check the attached file for broken links details."
+          ạp-path: broken_links.txt
