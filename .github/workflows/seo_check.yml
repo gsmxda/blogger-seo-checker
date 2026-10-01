@@ -1,0 +1,26 @@
+name: Blogger Broken Link Checker
+
+on:
+  schedule:
+    - cron: '0 0 * * 1' # Har Monday subah 12 baje automatic run hoga
+  workflow_dispatch: # Aap ise manually bhi button daba kar chala sakte hain
+
+jobs:
+  run-checker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          python -mなが pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Link Checker Script
+        run: python checker.py
